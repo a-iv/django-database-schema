@@ -59,6 +59,7 @@ class Repository(models.Model):
         cls.objects.create(revno=revno)
 
     @classmethod
+    @transaction.commit_manually
     def get_revno(cls):
         '''
             Gets revision number from database
@@ -68,11 +69,14 @@ class Repository(models.Model):
             count = revisions.count()
         except StandardError:
             # table "dbschema_repository" does not exist
-            return 0
+            count = 0
         if count == 0:
             cls.set_revno(0)
-            return 0
-        return revisions[0].revno
+            revno = 0
+        else:
+            revno = revisions[0].revno
+        transaction.commit()
+        return revno
 
     @classmethod
     def get_revisions(cls):
